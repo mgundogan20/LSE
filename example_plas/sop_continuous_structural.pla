@@ -1,0 +1,9 @@
+# Benchmark "example" written by ABC on Sun Oct 18 02:54:47 2026
+.i 4
+.o 1
+.ilb a b c d
+.ob e
+.p 2
+--11 1
+11-- 1
+.e

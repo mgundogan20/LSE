@@ -1,0 +1,5 @@
+# Equations for "example" written by ABC on Sun Oct 18 02:54:48 2026
+INORDER = a b c d;
+OUTORDER = e;
+e = (c * d) + (a * b);
+

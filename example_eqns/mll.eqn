@@ -1,0 +1,5 @@
+# Equations for "example4" written by ABC on Sun Oct 18 02:54:46 2026
+INORDER = a b c d;
+OUTORDER = e;
+e = a * ((b * (d + !c)) + (!d * c * !b));
+
