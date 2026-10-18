@@ -4,9 +4,7 @@ input wire i2;
 input wire cin;
 output wire sum;
 
-wire w1, w2, w3;
+wire w1;
 xor(w1, i1, i2);
 xor(sum, w1, cin);
-and(w2, w1, cin);
-and(w3, i1, i2);
 endmodule
