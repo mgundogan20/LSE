@@ -1,0 +1,97 @@
+{
+  "module": "example",
+  "source": "adder.v",
+  "inputs": [
+    "i1",
+    "i2",
+    "cin"
+  ],
+  "outputs": [
+    "sum"
+  ],
+  "nodes": [
+    {
+      "id": "i1",
+      "type": "INPUT",
+      "outputs": [
+        "i1"
+      ]
+    },
+    {
+      "id": "i2",
+      "type": "INPUT",
+      "outputs": [
+        "i2"
+      ]
+    },
+    {
+      "id": "cin",
+      "type": "INPUT",
+      "outputs": [
+        "cin"
+      ]
+    },
+    {
+      "id": "xor_1",
+      "type": "XOR",
+      "inputs": [
+        "i1",
+        "i2"
+      ],
+      "outputs": [
+        "w1"
+      ]
+    },
+    {
+      "id": "xor_2",
+      "type": "XOR",
+      "inputs": [
+        "w1",
+        "cin"
+      ],
+      "outputs": [
+        "sum"
+      ]
+    },
+    {
+      "id": "sum",
+      "type": "OUTPUT",
+      "inputs": [
+        "sum"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "i1",
+      "to": "xor_1",
+      "net": "i1",
+      "pin": 0
+    },
+    {
+      "from": "i2",
+      "to": "xor_1",
+      "net": "i2",
+      "pin": 1
+    },
+    {
+      "from": "xor_1",
+      "to": "xor_2",
+      "net": "w1",
+      "pin": 0
+    },
+    {
+      "from": "cin",
+      "to": "xor_2",
+      "net": "cin",
+      "pin": 1
+    },
+    {
+      "from": "xor_2",
+      "to": "sum",
+      "net": "sum",
+      "pin": 0
+    }
+  ],
+  "warnings": []
+}

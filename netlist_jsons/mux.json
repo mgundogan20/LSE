@@ -1,0 +1,328 @@
+{
+  "module": "example",
+  "source": "mux.v",
+  "inputs": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "sel[1]",
+    "sel[0]"
+  ],
+  "outputs": [
+    "out"
+  ],
+  "nodes": [
+    {
+      "id": "a",
+      "type": "INPUT",
+      "outputs": [
+        "a"
+      ]
+    },
+    {
+      "id": "b",
+      "type": "INPUT",
+      "outputs": [
+        "b"
+      ]
+    },
+    {
+      "id": "c",
+      "type": "INPUT",
+      "outputs": [
+        "c"
+      ]
+    },
+    {
+      "id": "d",
+      "type": "INPUT",
+      "outputs": [
+        "d"
+      ]
+    },
+    {
+      "id": "sel[1]",
+      "type": "INPUT",
+      "outputs": [
+        "sel[1]"
+      ]
+    },
+    {
+      "id": "sel[0]",
+      "type": "INPUT",
+      "outputs": [
+        "sel[0]"
+      ]
+    },
+    {
+      "id": "not_1",
+      "type": "NOT",
+      "inputs": [
+        "sel[0]"
+      ],
+      "outputs": [
+        "s0bar"
+      ]
+    },
+    {
+      "id": "not_2",
+      "type": "NOT",
+      "inputs": [
+        "sel[1]"
+      ],
+      "outputs": [
+        "s1bar"
+      ]
+    },
+    {
+      "id": "and_1",
+      "type": "AND",
+      "inputs": [
+        "s1bar",
+        "s0bar"
+      ],
+      "outputs": [
+        "sel0"
+      ]
+    },
+    {
+      "id": "and_2",
+      "type": "AND",
+      "inputs": [
+        "s1bar",
+        "sel[0]"
+      ],
+      "outputs": [
+        "sel1"
+      ]
+    },
+    {
+      "id": "and_3",
+      "type": "AND",
+      "inputs": [
+        "sel[1]",
+        "s0bar"
+      ],
+      "outputs": [
+        "sel2"
+      ]
+    },
+    {
+      "id": "and_4",
+      "type": "AND",
+      "inputs": [
+        "sel[1]",
+        "sel[0]"
+      ],
+      "outputs": [
+        "sel3"
+      ]
+    },
+    {
+      "id": "and_5",
+      "type": "AND",
+      "inputs": [
+        "a",
+        "sel0"
+      ],
+      "outputs": [
+        "out0"
+      ]
+    },
+    {
+      "id": "and_6",
+      "type": "AND",
+      "inputs": [
+        "b",
+        "sel1"
+      ],
+      "outputs": [
+        "out1"
+      ]
+    },
+    {
+      "id": "and_7",
+      "type": "AND",
+      "inputs": [
+        "c",
+        "sel2"
+      ],
+      "outputs": [
+        "out2"
+      ]
+    },
+    {
+      "id": "and_8",
+      "type": "AND",
+      "inputs": [
+        "d",
+        "sel3"
+      ],
+      "outputs": [
+        "out3"
+      ]
+    },
+    {
+      "id": "or_1",
+      "type": "OR",
+      "inputs": [
+        "out0",
+        "out1",
+        "out2",
+        "out3"
+      ],
+      "outputs": [
+        "out"
+      ]
+    },
+    {
+      "id": "out",
+      "type": "OUTPUT",
+      "inputs": [
+        "out"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "sel[0]",
+      "to": "not_1",
+      "net": "sel[0]",
+      "pin": 0
+    },
+    {
+      "from": "sel[0]",
+      "to": "and_2",
+      "net": "sel[0]",
+      "pin": 1
+    },
+    {
+      "from": "sel[0]",
+      "to": "and_4",
+      "net": "sel[0]",
+      "pin": 1
+    },
+    {
+      "from": "sel[1]",
+      "to": "not_2",
+      "net": "sel[1]",
+      "pin": 0
+    },
+    {
+      "from": "sel[1]",
+      "to": "and_3",
+      "net": "sel[1]",
+      "pin": 0
+    },
+    {
+      "from": "sel[1]",
+      "to": "and_4",
+      "net": "sel[1]",
+      "pin": 0
+    },
+    {
+      "from": "not_2",
+      "to": "and_1",
+      "net": "s1bar",
+      "pin": 0
+    },
+    {
+      "from": "not_2",
+      "to": "and_2",
+      "net": "s1bar",
+      "pin": 0
+    },
+    {
+      "from": "not_1",
+      "to": "and_1",
+      "net": "s0bar",
+      "pin": 1
+    },
+    {
+      "from": "not_1",
+      "to": "and_3",
+      "net": "s0bar",
+      "pin": 1
+    },
+    {
+      "from": "a",
+      "to": "and_5",
+      "net": "a",
+      "pin": 0
+    },
+    {
+      "from": "and_1",
+      "to": "and_5",
+      "net": "sel0",
+      "pin": 1
+    },
+    {
+      "from": "b",
+      "to": "and_6",
+      "net": "b",
+      "pin": 0
+    },
+    {
+      "from": "and_2",
+      "to": "and_6",
+      "net": "sel1",
+      "pin": 1
+    },
+    {
+      "from": "c",
+      "to": "and_7",
+      "net": "c",
+      "pin": 0
+    },
+    {
+      "from": "and_3",
+      "to": "and_7",
+      "net": "sel2",
+      "pin": 1
+    },
+    {
+      "from": "d",
+      "to": "and_8",
+      "net": "d",
+      "pin": 0
+    },
+    {
+      "from": "and_4",
+      "to": "and_8",
+      "net": "sel3",
+      "pin": 1
+    },
+    {
+      "from": "and_5",
+      "to": "or_1",
+      "net": "out0",
+      "pin": 0
+    },
+    {
+      "from": "and_6",
+      "to": "or_1",
+      "net": "out1",
+      "pin": 1
+    },
+    {
+      "from": "and_7",
+      "to": "or_1",
+      "net": "out2",
+      "pin": 2
+    },
+    {
+      "from": "and_8",
+      "to": "or_1",
+      "net": "out3",
+      "pin": 3
+    },
+    {
+      "from": "or_1",
+      "to": "out",
+      "net": "out",
+      "pin": 0
+    }
+  ],
+  "warnings": []
+}

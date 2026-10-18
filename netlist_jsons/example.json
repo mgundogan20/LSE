@@ -1,0 +1,424 @@
+{
+  "module": "example",
+  "source": "example.v",
+  "inputs": [
+    "x[9]",
+    "x[8]",
+    "x[7]",
+    "x[6]",
+    "x[5]",
+    "x[4]",
+    "x[3]",
+    "x[2]",
+    "x[1]",
+    "x[0]"
+  ],
+  "outputs": [
+    "f"
+  ],
+  "nodes": [
+    {
+      "id": "x[9]",
+      "type": "INPUT",
+      "outputs": [
+        "x[9]"
+      ]
+    },
+    {
+      "id": "x[8]",
+      "type": "INPUT",
+      "outputs": [
+        "x[8]"
+      ]
+    },
+    {
+      "id": "x[7]",
+      "type": "INPUT",
+      "outputs": [
+        "x[7]"
+      ]
+    },
+    {
+      "id": "x[6]",
+      "type": "INPUT",
+      "outputs": [
+        "x[6]"
+      ]
+    },
+    {
+      "id": "x[5]",
+      "type": "INPUT",
+      "outputs": [
+        "x[5]"
+      ]
+    },
+    {
+      "id": "x[4]",
+      "type": "INPUT",
+      "outputs": [
+        "x[4]"
+      ]
+    },
+    {
+      "id": "x[3]",
+      "type": "INPUT",
+      "outputs": [
+        "x[3]"
+      ]
+    },
+    {
+      "id": "x[2]",
+      "type": "INPUT",
+      "outputs": [
+        "x[2]"
+      ]
+    },
+    {
+      "id": "x[1]",
+      "type": "INPUT",
+      "outputs": [
+        "x[1]"
+      ]
+    },
+    {
+      "id": "x[0]",
+      "type": "INPUT",
+      "outputs": [
+        "x[0]"
+      ]
+    },
+    {
+      "id": "g0",
+      "type": "NOT",
+      "inputs": [
+        "x[2]"
+      ],
+      "outputs": [
+        "x2n"
+      ]
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "x[3]"
+      ],
+      "outputs": [
+        "x3n"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "x[5]"
+      ],
+      "outputs": [
+        "x5n"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "NOT",
+      "inputs": [
+        "x[6]"
+      ],
+      "outputs": [
+        "x6n"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "NOT",
+      "inputs": [
+        "x[8]"
+      ],
+      "outputs": [
+        "x8n"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "x[0]",
+        "x3n"
+      ],
+      "outputs": [
+        "n1"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "n1",
+        "x[7]"
+      ],
+      "outputs": [
+        "A"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "AND",
+      "inputs": [
+        "x5n",
+        "x[8]"
+      ],
+      "outputs": [
+        "n2"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "OR",
+      "inputs": [
+        "x[1]",
+        "n2"
+      ],
+      "outputs": [
+        "n3"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "XOR",
+      "inputs": [
+        "x2n",
+        "x[9]"
+      ],
+      "outputs": [
+        "n4"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "n3",
+        "n4"
+      ],
+      "outputs": [
+        "B"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "OR",
+      "inputs": [
+        "x[3]",
+        "x8n"
+      ],
+      "outputs": [
+        "n5"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "AND",
+      "inputs": [
+        "x[4]",
+        "x6n",
+        "n5"
+      ],
+      "outputs": [
+        "C"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "OR",
+      "inputs": [
+        "B",
+        "C"
+      ],
+      "outputs": [
+        "n6"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "XOR",
+      "inputs": [
+        "A",
+        "n6"
+      ],
+      "outputs": [
+        "f"
+      ]
+    },
+    {
+      "id": "f",
+      "type": "OUTPUT",
+      "inputs": [
+        "f"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "x[2]",
+      "to": "g0",
+      "net": "x[2]",
+      "pin": 0
+    },
+    {
+      "from": "x[3]",
+      "to": "g1",
+      "net": "x[3]",
+      "pin": 0
+    },
+    {
+      "from": "x[3]",
+      "to": "g11",
+      "net": "x[3]",
+      "pin": 0
+    },
+    {
+      "from": "x[5]",
+      "to": "g2",
+      "net": "x[5]",
+      "pin": 0
+    },
+    {
+      "from": "x[6]",
+      "to": "g3",
+      "net": "x[6]",
+      "pin": 0
+    },
+    {
+      "from": "x[8]",
+      "to": "g4",
+      "net": "x[8]",
+      "pin": 0
+    },
+    {
+      "from": "x[8]",
+      "to": "g7",
+      "net": "x[8]",
+      "pin": 1
+    },
+    {
+      "from": "x[0]",
+      "to": "g5",
+      "net": "x[0]",
+      "pin": 0
+    },
+    {
+      "from": "g1",
+      "to": "g5",
+      "net": "x3n",
+      "pin": 1
+    },
+    {
+      "from": "g5",
+      "to": "g6",
+      "net": "n1",
+      "pin": 0
+    },
+    {
+      "from": "x[7]",
+      "to": "g6",
+      "net": "x[7]",
+      "pin": 1
+    },
+    {
+      "from": "g2",
+      "to": "g7",
+      "net": "x5n",
+      "pin": 0
+    },
+    {
+      "from": "x[1]",
+      "to": "g8",
+      "net": "x[1]",
+      "pin": 0
+    },
+    {
+      "from": "g7",
+      "to": "g8",
+      "net": "n2",
+      "pin": 1
+    },
+    {
+      "from": "g0",
+      "to": "g9",
+      "net": "x2n",
+      "pin": 0
+    },
+    {
+      "from": "x[9]",
+      "to": "g9",
+      "net": "x[9]",
+      "pin": 1
+    },
+    {
+      "from": "g8",
+      "to": "g10",
+      "net": "n3",
+      "pin": 0
+    },
+    {
+      "from": "g9",
+      "to": "g10",
+      "net": "n4",
+      "pin": 1
+    },
+    {
+      "from": "g4",
+      "to": "g11",
+      "net": "x8n",
+      "pin": 1
+    },
+    {
+      "from": "x[4]",
+      "to": "g12",
+      "net": "x[4]",
+      "pin": 0
+    },
+    {
+      "from": "g3",
+      "to": "g12",
+      "net": "x6n",
+      "pin": 1
+    },
+    {
+      "from": "g11",
+      "to": "g12",
+      "net": "n5",
+      "pin": 2
+    },
+    {
+      "from": "g10",
+      "to": "g13",
+      "net": "B",
+      "pin": 0
+    },
+    {
+      "from": "g12",
+      "to": "g13",
+      "net": "C",
+      "pin": 1
+    },
+    {
+      "from": "g6",
+      "to": "g14",
+      "net": "A",
+      "pin": 0
+    },
+    {
+      "from": "g13",
+      "to": "g14",
+      "net": "n6",
+      "pin": 1
+    },
+    {
+      "from": "g14",
+      "to": "f",
+      "net": "f",
+      "pin": 0
+    }
+  ],
+  "warnings": []
+}
