@@ -43,9 +43,41 @@ class boolean_exp:
 		expanded_tokens = self.substitute_equations(equation_tokens)
 
 		self.expression = self.build_tree(expanded_tokens[self.output])
-		print(f"Expanded expression for {self.output}: {self.expression}\n")
+		print(f"Expanded expression for {self.output}:")
+		print(self.expression_tree())
+
+
 		
 		return self.expression
+	
+	def expression_tree(self, node=None, prefix="", is_last=True, is_root=True):
+			"""Written by Claude"""
+			"""Return the expression tree with box-drawing lines connecting parent to child."""
+			if node is None:
+				node = self.expression
+
+			kind = node[0]
+			if kind in ("VARIABLE", "CONSTANT"):
+				label = f"{kind}: {node[1]}"
+			else:
+				label = kind
+
+			if is_root:
+				line = label
+				child_prefix = ""
+			else:
+				connector = "└── " if is_last else "├── "
+				line = prefix + connector + label
+				child_prefix = prefix + ("    " if is_last else "│   ")
+
+			lines = [line]
+			if kind not in ("VARIABLE", "CONSTANT"):
+				children = [node[1]] if kind == "NOT" else node[1]
+				for i, child in enumerate(children):
+					lines.append(self.expression_tree(
+						child, child_prefix, i == len(children) - 1, False
+					))
+			return "\n".join(lines)
 
 	def substitute_equations(self, equation_tokens):
 		"""
@@ -174,6 +206,13 @@ class boolean_exp:
 
 		return eval_node(self.expression)
 
+	def get_onset_minterms(self, method='brute_force'):
+		if method == 'brute_force':
+			return self.onset_minterms_brute_force()
+		else:
+			raise ValueError(f"Unknown method: {method}")
+
+		
 	def onset_minterms_brute_force(self):
 		self.minterms = []
 
@@ -193,8 +232,41 @@ class boolean_exp:
 
 		print(f"Onset minterms: {self.minterms}")
 		return self.minterms
+
+	def get_canonical_SOP(self):
+		if not self.minterms:
+			self.get_onset_minterms()
+		return self.minterms
+
+	def get_canonical_POS(self):
+		max_minterm = 2 ** len(self.inputs) - 1
+		if not self.minterms:
+			self.get_onset_minterms()
+		return [i for i in range(max_minterm + 1) if i not in self.minterms]
+
+	def get_inverse_SOP(self):
+		if not self.minterms:
+			self.get_onset_minterms()
+		return self.get_canonical_POS()
+
+	def get_inverse_POS(self):
+		if not self.minterms:
+			self.get_onset_minterms()
+		return self.get_canonical_SOP()
+
 		
 if __name__ == "__main__":
 	boolean_expression = boolean_exp()
 	boolean_expression.parse_eqn('./example_eqns/sop_continuous_single.eqn')
-	boolean_expression.onset_minterms_brute_force()
+
+	print(f"Inputs: {boolean_expression.inputs}")
+	print(f"Output: {boolean_expression.output}")
+
+	print(f"Expression: {boolean_expression.expression}")
+	print(f"Onset minterms: {boolean_expression.get_onset_minterms()}")
+
+	print(f"Canonical SOP: {boolean_expression.get_canonical_SOP()}")
+	print(f"Canonical POS: {boolean_expression.get_canonical_POS()}")
+
+	print(f"SOP of inverse: {boolean_expression.get_inverse_SOP()}")
+	print(f"POS of inverse: {boolean_expression.get_inverse_POS()}")
