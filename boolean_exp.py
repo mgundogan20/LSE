@@ -1,4 +1,5 @@
 import re
+import quine_mccluskey
 
 class boolean_exp:
 	# Expressions are nested tuples:
@@ -253,8 +254,8 @@ class boolean_exp:
 		if not self.minterms:
 			self.get_onset_minterms()
 		return self.get_canonical_SOP()
-
 		
+
 if __name__ == "__main__":
 	boolean_expression = boolean_exp()
 	boolean_expression.parse_eqn('./example_eqns/sop_continuous_single.eqn')
@@ -270,3 +271,6 @@ if __name__ == "__main__":
 
 	print(f"SOP of inverse: {boolean_expression.get_inverse_SOP()}")
 	print(f"POS of inverse: {boolean_expression.get_inverse_POS()}")
+
+	QMC = quine_mccluskey.QMC()
+	QMC.find_prime_implicants(boolean_expression.get_canonical_SOP(), boolean_expression.inputs)
