@@ -1,0 +1,15 @@
+# Benchmark "example4" written by ABC on Sun Oct 18 02:54:46 2026
+.model example4
+.inputs a b c d
+.outputs e
+.names d c b a e
+0000 1
+0100 1
+0101 1
+0111 1
+1010 1
+1100 1
+1101 1
+1110 1
+1111 1
+.end
