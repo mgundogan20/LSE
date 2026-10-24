@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+from pathlib import Path
 import quine_mccluskey
 
 class boolean_exp:
@@ -213,7 +215,6 @@ class boolean_exp:
 		else:
 			raise ValueError(f"Unknown method: {method}")
 
-		
 	def onset_minterms_brute_force(self):
 		self.minterms = []
 
@@ -254,11 +255,39 @@ class boolean_exp:
 		if not self.minterms:
 			self.get_onset_minterms()
 		return self.get_canonical_SOP()
+
+	def write_eqn_from_SOP_cubes(self, cubes, path):
+		out_exp = []
+		for cube in cubes:
+			cube_exp = []
+			for bit, variable in zip(cube, self.inputs):
+				if bit == '1':
+					cube_exp.append(variable)
+				elif bit == "0":
+					cube_exp.append("!" + variable)
+			cube_exp = "(" + " * ".join(cube_exp) + ")"
+			out_exp.append(cube_exp)
 		
+		out_exp = self.output + " = " + " + ".join(out_exp)
+		filename = Path(path).stem
+		header = (
+			f'# Equation for "{filename}" written by us\n'
+		)
+		content = (
+			header
+			+ "INORDER = " + " ".join(self.inputs) + ";\n"
+			+ "OUTORDER = " + self.output + ";\n"
+			+ out_exp + ";\n"
+		)
+		with open(path, "w") as file:
+			file.write(content)
+		return content
+
+
 
 if __name__ == "__main__":
 	boolean_expression = boolean_exp()
-	boolean_expression.parse_eqn('./example_eqns/sop_continuous_single.eqn')
+	boolean_expression.parse_eqn('./example_eqns/no_epis.eqn')
 
 	print(f"Inputs: {boolean_expression.inputs}")
 	print(f"Output: {boolean_expression.output}")
@@ -273,4 +302,44 @@ if __name__ == "__main__":
 	print(f"POS of inverse: {boolean_expression.get_inverse_POS()}")
 
 	QMC = quine_mccluskey.QMC()
-	QMC.find_prime_implicants(boolean_expression.get_canonical_SOP(), boolean_expression.inputs)
+	minimized_SOP = QMC.find_minimal_expression(boolean_expression.get_canonical_SOP(), boolean_expression.inputs)
+
+	boolean_expression.write_eqn_from_SOP_cubes(minimized_SOP, './result.eqn')
+
+	minimized = boolean_exp()
+	minimized.parse_eqn('./result.eqn')
+
+	print(f"Inputs: {minimized.inputs}")
+	print(f"Output: {minimized.output}")
+
+	print(f"Expression: {minimized.expression}")
+	print(f"Onset minterms: {minimized.get_onset_minterms()}")
+
+	print(f"Canonical SOP: {minimized.get_canonical_SOP()}")
+	print(f"Canonical POS: {minimized.get_canonical_POS()}")
+
+	print(f"SOP of inverse: {minimized.get_inverse_SOP()}")
+	print(f"POS of inverse: {minimized.get_inverse_POS()}")
+
+	sop_cubes = []
+
+	for term in boolean_expression.get_canonical_SOP():
+		cube = f"{term:0{len(boolean_expression.inputs)}b}"
+		sop_cubes.append(cube)
+
+	boolean_expression.write_eqn_from_SOP_cubes(sop_cubes, './canonical.eqn')
+
+	canonical_SOP = boolean_exp()
+	canonical_SOP.parse_eqn('./canonical.eqn')
+
+	print(f"Inputs: {canonical_SOP.inputs}")
+	print(f"Output: {canonical_SOP.output}")
+
+	print(f"Expression: {canonical_SOP.expression}")
+	print(f"Onset minterms: {canonical_SOP.get_onset_minterms()}")
+
+	print(f"Canonical SOP: {canonical_SOP.get_canonical_SOP()}")
+	print(f"Canonical POS: {canonical_SOP.get_canonical_POS()}")
+
+	print(f"SOP of inverse: {canonical_SOP.get_inverse_SOP()}")
+	print(f"POS of inverse: {canonical_SOP.get_inverse_POS()}")
