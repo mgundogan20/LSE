@@ -1,3 +1,6 @@
+import numpy as np
+import copy
+
 class QMC:
 	def __init__(self):
 		self.qmc_table = {}
@@ -93,14 +96,153 @@ class QMC:
 		return ''.join(merged)
 
 	def find_prime_implicants(self, SOP, inputs):
-		self.table_from_SOP(SOP, inputs)
-		
+		print("Merging minterms to find prime implicants:")
 		updated = True
 		while updated:
 			updated = False
-			for num_ones in sorted(self.mcqueen_table.keys()):
-				for term in self.mcqueen_table[num_ones][:]:  # Use a copy of the list to avoid modification issues
-					updated |= self.check_neighbours(term, num_ones)
+			last_qmc = copy.deepcopy(self.qmc_table)
+			for num_ones in sorted(last_qmc.keys()):
+				for term in last_qmc[num_ones][:]:
+					updated |= self.check_neighbours(term, num_ones, last_qmc)
+			if updated:
+				print("Updated qmc table")
 
-					self.print_mcqueen_table()  # Print the table after each merge to visualize the process
+		for term in self.qmc_table.values():
+			self.PIs.extend(set(term))
+
+	def check_term_coverage(self, term):
+		covered_terms = []
+		if '-' not in term:
+			covered_terms.append(term)
+		else:
+			pos = term.find('-')
+
+			term0 = term[:pos] + '0' + term[pos+1:]
+			term1 = term[:pos] + '1' + term[pos+1:]
+
+			covered_terms.extend(self.check_term_coverage(term0))
+			covered_terms.extend(self.check_term_coverage(term1))
+			
+		return covered_terms
+						
+	def build_PI_chart(self, inputs, implicants):
+		binaries = {}
+		for impl in implicants:
+			binaries[impl] = self.check_term_coverage(impl)
 		
+		PI_chart = np.zeros(shape=(len(implicants), 2**len(inputs)))
+		PIC_dict = {}
+
+		row = 0
+		for key, value in binaries.items():
+			minterms = [int("0b"+bin, base=2) for bin in value]
+			PI_chart[row][minterms] = 1
+			PIC_dict[key] = row
+			row += 1
+
+		print(f"\nPrime implicants are:")
+		for key in PIC_dict.keys():
+			print(key)
+		return PIC_dict, PI_chart
+
+	def find_EPIs(self, PIC_dict, PI_chart):
+		essentials = []
+		remaining_minterms = [int(i) for i in np.argwhere(PI_chart.sum(axis=0)==1)]
+		
+		while len(remaining_minterms) > 0:
+			mt = remaining_minterms.pop()
+			row_of_mt = np.argwhere(PI_chart[:,int(mt)] == 1)
+			for impl, row in PIC_dict.items():
+				if row == row_of_mt:
+					essentials.append(impl)
+					covered_by_EPI = np.argwhere(PI_chart[row]==1)
+
+					for ter in covered_by_EPI:
+						try:
+							remaining_minterms.remove(int(ter))
+						except ValueError as e:
+							continue
+
+		print(f"Remaining must-have implicants: {essentials}")
+		return essentials
+
+	def reduce_chart(self, PIC_dict, PI_chart, EPIs):
+		rows_to_rem = set()
+		cols_to_rem = set()
+		for impl in EPIs:
+			print("\nPIC:")
+			print(PI_chart)
+			print(PIC_dict)
+			print()
+
+			row = PIC_dict[impl]
+			cols = [int(i) for i in (np.argwhere(PI_chart[row]==1))]
+
+			rows_to_rem.add(row)
+			cols_to_rem.update(cols)
+
+			print(f"Considering {impl}:")
+			print(f"Remove rows: {rows_to_rem}")
+			print(f"Remove cols: {cols_to_rem}")
+
+			self.MinExp.append(impl)
+
+			PI_chart[row,:] = 0
+			PI_chart[:, cols] = 0
+
+			PIC_dict.pop(impl)
+		
+		print("\nPIC:")
+		print(PI_chart)
+		print(PIC_dict)
+
+	def petricks(self, PIC, PIC_dict):
+		"""
+		Cover the minterms left after removing the EPIs using Petrick's method.
+		"""
+		remaining_minterms = [int(minterm) for minterm in np.flatnonzero(PIC.sum(axis=0) > 0)]
+		if not remaining_minterms:
+			print("\nNo minterms left to cover, Petrick's method is not needed")
+			return []
+
+		row_to_implicant = {row: impl for impl, row in PIC_dict.items()}
+
+		print("\n There are missing minterms, using Pertick's to cover them.")
+		# Multiply out the product of sums, one minterm (sum) at a time
+		products = {frozenset()}
+		for minterm in remaining_minterms:
+			covering_implicants = [row_to_implicant[int(row)] for row in np.flatnonzero(PIC[:, minterm] == 1)]
+			expanded = set()
+			for product in products:
+				for impl in covering_implicants:
+					expanded.add(product | {impl})
+			# Absorption: X + XY = X
+			products = {product for product in expanded if not any(other < product for other in expanded)}
+			print(f"After minterm {minterm}: {[sorted(product) for product in products]}")
+
+		def cost(product):
+			literal_count = sum(len(impl) - impl.count('-') for impl in product)
+			return (len(product), literal_count, sorted(product))
+
+		cheapest_cover = sorted(min(products, key=cost))
+		print(f"\nPetrick's method selected: {cheapest_cover}")
+
+		self.MinExp.extend(cheapest_cover)
+		return cheapest_cover
+
+
+	def find_minimal_expression(self, SOP, inputs):
+		self.table_from_SOP(SOP, inputs)
+		
+		self.find_prime_implicants(SOP, inputs)
+
+		PIC_dict, PI_chart = self.build_PI_chart(inputs, self.PIs)
+
+		print("\nOptimizing Prime Implicant Chart")
+		self.EPIs = self.find_EPIs(PIC_dict, PI_chart)
+		self.reduce_chart(PIC_dict, PI_chart, self.EPIs)
+		self.petricks(PI_chart, PIC_dict)
+
+		return(self.MinExp)
+		
+
