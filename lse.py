@@ -1,5 +1,7 @@
 import contextlib
+import importlib.util
 import io
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -20,6 +22,7 @@ import quine_mccluskey
 from boolean_exp import boolean_exp
 
 EXAMPLE_DIRECTORY = Path(__file__).resolve().parent / "example_eqns"
+SYNTHESIS_DIRECTORY = Path(__file__).resolve().parent / "synthesis"
 
 NODE_COLORS = {
 	"AND": "#4F6BED",
@@ -248,6 +251,58 @@ def analyze_eqn(path):
 	}
 
 
+# ---------------------------------------------------------------- synthesis
+
+def write_blif_from_SOP_cubes(cubes, inputs, output, model_name, path):
+	lines = [
+		f".model {model_name}",
+		".inputs " + " ".join(inputs),
+		f".outputs {output}",
+		".names " + " ".join(inputs) + f" {output}",
+	]
+	lines.extend(f"{cube} 1" for cube in cubes)
+	lines.append(".end")
+	blif_text = "\n".join(lines) + "\n"
+	Path(path).write_text(blif_text)
+	return blif_text
+
+
+def run_synthesis(analysis):
+	"""Write the minimized SOP as a .blif, then import synthesis.py to build the netlist and constraints.
+	synthesis.py does all its work at import time, reads sys.argv[1], and uses the working directory."""
+	model_name = analysis["path"].stem
+	log = io.StringIO()
+	previous_argv = sys.argv
+	previous_directory = os.getcwd()
+	with tempfile.TemporaryDirectory() as directory:
+		blif_path = Path(directory) / f"{model_name}.blif"
+		blif_text = write_blif_from_SOP_cubes(
+			analysis["sop_cubes"], analysis["inputs"], analysis["output"], model_name, blif_path
+		)
+		try:
+			sys.argv = ["synthesis.py", str(blif_path)]
+			os.chdir(SYNTHESIS_DIRECTORY)
+			specification = importlib.util.spec_from_file_location("synthesis", SYNTHESIS_DIRECTORY / "synthesis.py")
+			synthesis = importlib.util.module_from_spec(specification)
+			with contextlib.redirect_stdout(log):
+				specification.loader.exec_module(synthesis)
+		except SystemExit as error:
+			raise RuntimeError(f"synthesis.py exited: {error}\n\n{log.getvalue()}") from None
+		finally:
+			sys.argv = previous_argv
+			os.chdir(previous_directory)
+
+	module_name = synthesis.module_name
+	return {
+		"module_name": module_name,
+		"log": log.getvalue(),
+		"blif": blif_text,
+		"verilog": (SYNTHESIS_DIRECTORY / f"{module_name}.v").read_text(),
+		"constraints": (SYNTHESIS_DIRECTORY / "constraints.xdc").read_text(),
+		"truth_table": (SYNTHESIS_DIRECTORY / f"{module_name}_truth_table.txt").read_text(),
+	}
+
+
 def format_savings(canonical_literals, minimized_literals):
 	saved = canonical_literals - minimized_literals
 	percentage = 100 * saved / canonical_literals if canonical_literals else 0
@@ -463,10 +518,15 @@ class MainWindow(QMainWindow):
 		self.tree_view = TreeView()
 		self.source_view = self.build_text_view()
 		self.log_view = self.build_text_view()
+		self.synthesis_view = self.build_text_view()
+		self.synthesis_view.setPlainText("Load an .eqn file and press Bitstream to run synthesis.py")
 		self.tabs.addTab(self.tree_view, "Expression Trees")
 		self.tabs.addTab(self.report_area, "Report")
 		self.tabs.addTab(self.wrap_with_margins(self.source_view), "Source")
 		self.tabs.addTab(self.wrap_with_margins(self.log_view), "Log")
+		self.synthesis_tab = self.wrap_with_margins(self.synthesis_view)
+		self.tabs.addTab(self.synthesis_tab, "Synthesis")
+		self.analysis = None
 		page_layout.addWidget(self.tabs, 1)
 
 		self.setCentralWidget(page)
@@ -503,6 +563,15 @@ class MainWindow(QMainWindow):
 		open_button.setCursor(Qt.PointingHandCursor)
 		open_button.clicked.connect(self.choose_file)
 		layout.addWidget(open_button)
+		layout.addSpacing(8)
+
+		self.bitstream_button = QPushButton("Bitstream")
+		self.bitstream_button.setObjectName("primary")
+		self.bitstream_button.setCursor(Qt.PointingHandCursor)
+		self.bitstream_button.setToolTip("Run synthesis.py on the minimized SOP: Verilog netlist, constraints.xdc and truth table")
+		self.bitstream_button.setEnabled(False)
+		self.bitstream_button.clicked.connect(self.generate_bitstream)
+		layout.addWidget(self.bitstream_button)
 		return header
 
 	def build_placeholder(self):
@@ -543,7 +612,27 @@ class MainWindow(QMainWindow):
 		QApplication.restoreOverrideCursor()
 		self.show_analysis(analysis)
 
+	def generate_bitstream(self):
+		QApplication.setOverrideCursor(Qt.WaitCursor)
+		try:
+			synthesis = run_synthesis(self.analysis)
+		except Exception as error:
+			QApplication.restoreOverrideCursor()
+			QMessageBox.critical(self, "Synthesis failed", f"{self.analysis['path'].name}\n\n{type(error).__name__}: {error}")
+			return
+		QApplication.restoreOverrideCursor()
+		self.synthesis_view.setPlainText(
+			f"# ---- synthesis.py output\n{synthesis['log'].rstrip()}\n\n"
+			f"# ---- Input BLIF (minimized SOP)\n{synthesis['blif']}\n"
+			f"# ---- {SYNTHESIS_DIRECTORY / (synthesis['module_name'] + '.v')}\n{synthesis['verilog']}\n"
+			f"# ---- {SYNTHESIS_DIRECTORY / 'constraints.xdc'}\n{synthesis['constraints']}\n"
+			f"# ---- {SYNTHESIS_DIRECTORY / (synthesis['module_name'] + '_truth_table.txt')}\n{synthesis['truth_table']}"
+		)
+		self.tabs.setCurrentWidget(self.synthesis_tab)
+
 	def show_analysis(self, analysis):
+		self.analysis = analysis
+		self.bitstream_button.setEnabled(True)
 		inputs = analysis["inputs"]
 		self.file_label.setText(f"{analysis['path'].name}   ·   {', '.join(inputs)} → {analysis['output']}")
 
